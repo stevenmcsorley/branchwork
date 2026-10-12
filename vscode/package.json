@@ -3,7 +3,7 @@
   "displayName": "Branchwork Pro Workspace",
   "description": "Local Git graph, editor blame, advanced Git workflows, optional AI and MCP.",
   "publisher": "branchwork-local",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "repository": {
     "type": "git",
     "url": "https://github.com/stevenmcsorley/branchwork.git"

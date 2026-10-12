@@ -41,14 +41,14 @@ await fs.cp(
 await stageApp(app);
 await fs.copyFile(path.join(root, "LICENSE"), path.join(portable, "LICENSE"));
 await fs.writeFile(path.join(portable, "THIRD_PARTY_LICENSES.txt"), notices);
-await fs.writeFile(
+await fs.copyFile(
+  path.join(root, "scripts/portable-linux-launcher.sh"),
   path.join(portable, "branchwork"),
-  '#!/bin/sh\nbranchwork_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexec "$branchwork_dir/electron/electron" "$@" "$branchwork_dir/app"\n',
-  { mode: 0o755 },
 );
+await fs.chmod(path.join(portable, "branchwork"), 0o755);
 await fs.writeFile(
   path.join(portable, "INSTALL.txt"),
-  `Branchwork ${version}\nRequires system Git and GTK/NSS libraries.\nRun ./branchwork.\nIf Ubuntu blocks unprivileged sandbox startup, use ./branchwork --no-sandbox, or install the DEB (which installs the sandbox helper with its required ownership).\nThe flag only changes this application's process sandbox. See the source README for details.\n`,
+  `Branchwork ${version}\nRequires system Git and GTK/NSS libraries.\nRun ./branchwork.\nThe portable launcher checks whether Electron's SUID sandbox helper is available. If it is not, the app starts with --no-sandbox. The Debian package preserves the helper's required ownership and mode.\nSee the source README for details.\n`,
 );
 await fs.cp(
   path.join(root, "vscode/media/branch.svg"),

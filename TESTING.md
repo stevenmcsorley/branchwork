@@ -16,7 +16,7 @@ The same tests passed when run with `ELECTRON_RUN_AS_NODE=1 node_modules/electro
 
 Used a disposable demo repository with actual diverging branches and a merge commit. Verified opening the repo, graph rendering, working and historic diffs, stage-all, creating a commit, worktree listing, reviewing an interactive rebase plan, and staging one hunk. Git independently confirmed the resulting commit and cached patch. Commit drafts survived hunk staging. A duplicate branch-name error left the branch form and typed name intact. Browser error/warning logs were empty at the final check.
 
-The 0.2.1 GitHub Actions release workflow passed on Ubuntu, macOS and Windows. Each packaged desktop app was started in Node mode and smoke-tested against its bundled HTTP server; the VS Code VSIX installed into an isolated extension directory. Linux DEB metadata and its root-owned setuid sandbox helper were inspected locally. `npm run desktop:compat` opens the source Electron app on this host. The portable Linux launcher fallback is also exercised by launching it with `--no-sandbox` before the packaged app path.
+The 0.2.2 GitHub Actions release workflow passed on Ubuntu, macOS and Windows. Each packaged desktop app was started in Node mode and smoke-tested against its bundled HTTP server; the VS Code VSIX installed into an isolated extension directory. Linux DEB metadata and its root-owned setuid sandbox helper were inspected locally. `npm run desktop:compat` opens the source Electron app on this host. The 0.2.3 portable Linux app also opened from a fresh user-owned extraction when invoked without arguments. Its launcher detected the non-root-owned sandbox helper and supplied Electron's `--no-sandbox` flag automatically.
 
 ## Coverage limits
 

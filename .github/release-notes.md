@@ -1,8 +1,10 @@
 Branchwork is a local Git workbench for Windows, macOS, Linux and VS Code.
 
-## What's new in 0.2.2
+## What's new in 0.2.3
 
-- **Fixed Linux portable launch:** Electron switches such as `--no-sandbox` now reach Electron before the app path, so the documented fallback works on systems that block the sandbox helper.
+- **Fixed Linux portable launch:** the launcher detects when archive extraction leaves Electron's sandbox helper without root ownership and starts the app with the required fallback automatically. The Debian package retains the helper's secure ownership and mode.
+
+## What's new in 0.2.2
 
 ## What's new in 0.2.1
 
