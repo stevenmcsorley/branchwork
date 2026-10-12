@@ -1,0 +1,3 @@
+host-test.cjs
+**/*.map
+**/*.test.*

@@ -1,0 +1,36 @@
+{
+  "name": "branchwork",
+  "version": "0.2.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stevenmcsorley/branchwork.git"
+  },
+  "description": "An independent local Git desktop client informed by GitKraken 12.6.0 artifact observations",
+  "type": "module",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "start": "node server.mjs",
+    "desktop": "electron .",
+    "desktop:compat": "electron --no-sandbox .",
+    "demo": "node scripts/create-demo.mjs",
+    "package": "node scripts/package.mjs",
+    "mcp": "node mcp-server.mjs",
+    "build:runtime": "node scripts/build-runtime.mjs",
+    "build:release": "node scripts/build-release.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check server.mjs && node --check settings.mjs && node --check integrations.mjs && node --check hosting.mjs && node --check mcp-server.mjs && node --check public/app.js && node --check public/parity.js && node --check public/pro.js && node --check desktop/main.cjs && node --check desktop/preload.cjs && node --check vscode/extension.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "esbuild": "^0.28.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "zod": "^4.6.6"
+  }
+}

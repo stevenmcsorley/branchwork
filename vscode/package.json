@@ -1,0 +1,77 @@
+{
+  "name": "branchwork-pro-workspace",
+  "displayName": "Branchwork Pro Workspace",
+  "description": "Local Git graph, editor blame, advanced Git workflows, optional AI and MCP.",
+  "publisher": "branchwork-local",
+  "version": "0.2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stevenmcsorley/branchwork.git"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "main": "./extension.cjs",
+  "activationEvents": [
+    "onView:branchwork.repositories"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "branchwork.openWorkspace",
+        "title": "Branchwork: Open Workspace"
+      },
+      {
+        "command": "branchwork.openAI",
+        "title": "Branchwork: Open AI Settings"
+      },
+      {
+        "command": "branchwork.refresh",
+        "title": "Branchwork: Refresh Repositories"
+      },
+      {
+        "command": "branchwork.toggleInlineBlame",
+        "title": "Branchwork: Toggle Inline Blame"
+      },
+      {
+        "command": "branchwork.showLineCommit",
+        "title": "Branchwork: Show Line Commit"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "branchwork",
+          "title": "Branchwork",
+          "icon": "media/branch.svg"
+        }
+      ]
+    },
+    "views": {
+      "branchwork": [
+        {
+          "id": "branchwork.repositories",
+          "name": "Repositories"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Branchwork",
+      "properties": {
+        "branchwork.inlineBlame": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show actual Git attribution for the selected editor line. Unsaved documents are excluded."
+        }
+      }
+    }
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Branchwork — Git workspace</title>
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/pro.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="brand-icon">⑂</span> Branchwork
+        <small>LOCAL GIT WORKSPACE</small>
+      </div>
+      <button id="open">Open repository</button
+      ><button id="refresh" title="Refresh repository">↻</button
+      ><button id="settings">Settings</button>
+    </header>
+    <section id="welcome">
+      <div class="welcome-card">
+        <div class="welcome-icon">⑂</div>
+        <p class="eyebrow">YOUR CODE. YOUR HISTORY.</p>
+        <h1>A clearer view of your Git.</h1>
+        <p>
+          Explore branches, review changes, and move your work forward.<br />Everything
+          runs against your local repositories.
+        </p>
+        <form id="open-form">
+          <label for="repo-path">Repository folder</label>
+          <div class="inline">
+            <input
+              id="repo-path"
+              placeholder="/path/to/your/repository"
+              required
+            /><button class="primary">Open workspace →</button>
+          </div>
+        </form>
+        <div class="welcome-actions">
+          <button id="init">Initialize repository</button
+          ><button id="clone">Clone repository</button>
+        </div>
+        <div id="recent"></div>
+      </div>
+    </section>
+    <main id="workspace" hidden>
+      <aside>
+        <div class="repo-heading">
+          <span class="repo-icon">▣</span>
+          <div>
+            <strong id="repo-name"></strong><small id="repo-location"></small>
+          </div>
+        </div>
+        <button id="changes-nav" class="nav-item selected">
+          ◉ Working directory <span id="change-count"></span>
+        </button>
+        <div id="sidebar"></div>
+        <div class="sidebar-bottom">
+          <span class="status-dot"></span> Local Git · your machine
+        </div>
+      </aside>
+      <section class="history">
+        <div class="toolbar">
+          <button data-command="branch">⑂ Branch</button
+          ><button data-command="fetch">↓ Fetch</button
+          ><button data-command="pull">⇣ Pull</button
+          ><button data-command="push">⇡ Push</button
+          ><button data-command="stash">▱ Stash</button
+          ><button id="more">More ▾</button>
+          <div class="spacer"></div>
+          <span id="branch-label"></span>
+        </div>
+        <div id="operation" hidden></div>
+        <div class="history-title">
+          <div>
+            <p class="eyebrow">REPOSITORY HISTORY</p>
+            <h2>Commit graph</h2>
+          </div>
+          <input
+            id="search"
+            placeholder="Search commits, authors, hashes…"
+            aria-label="Search commits"
+          />
+        </div>
+        <div class="log-head">
+          <span>GRAPH</span><span>COMMIT MESSAGE</span
+          ><span>AUTHOR / DATE</span>
+        </div>
+        <div id="commits"></div>
+        <footer id="history-footer"></footer>
+      </section>
+      <section class="details"><div id="details"></div></section>
+    </main>
+    <div id="toast" role="status" hidden></div>
+    <dialog id="modal">
+      <form id="modal-form">
+        <div class="modal-heading">
+          <h2 id="modal-title"></h2>
+          <button type="button" id="modal-close" aria-label="Close dialog">
+            ×
+          </button>
+        </div>
+        <div id="modal-body"></div>
+        <div class="modal-footer">
+          <button type="button" id="modal-cancel">Cancel</button
+          ><button id="modal-submit" class="primary">Continue</button>
+        </div>
+      </form>
+    </dialog>
+    <script src="/app.js"></script>
+    <script src="/parity.js"></script>
+    <script src="/pro.js"></script>
+  </body>
+</html>

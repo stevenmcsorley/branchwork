@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "branchwork",
+  "version": "0.2.0",
+  "description": "Inspect local Git repositories and use optional configured AI through Branchwork MCP tools.",
+  "author": { "name": "Branchwork" },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Branchwork",
+        "shortDescription": "Local Git tools and optional AI",
+        "longDescription": "Local repository status, history, diffs, blame, and optional AI assistance. Repository writes are disabled unless explicitly enabled in the local MCP configuration.",
+        "developerName": "Branchwork",
+        "category": "Developer Tools",
+        "defaultPrompt": "Inspect my selected local repository with Branchwork and explain its changes."
+      }
+    }
+  }
+}

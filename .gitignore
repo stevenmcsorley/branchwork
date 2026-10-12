@@ -1,0 +1,11 @@
+node_modules/
+research/package/
+research/app/
+research/*.json
+dist/
+*.log
+vscode/runtime/
+vscode/*.vsix
+.env
+.env.*
+!.env.example

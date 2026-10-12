@@ -1,0 +1,15 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "branchwork": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${PLUGIN_ROOT}/mcp-server.mjs"],
+      "cwd": "${PLUGIN_ROOT}",
+      "env": {
+        "BRANCHWORK_MCP_ROOT": "${PLUGIN_ROOT}",
+        "BRANCHWORK_MCP_ALLOW_WRITES": "0"
+      }
+    }
+  }
+}
