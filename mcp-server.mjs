@@ -13,7 +13,7 @@ export async function createMCPServer({
   allowWrites = process.env.BRANCHWORK_MCP_ALLOW_WRITES === "1",
 }) {
   const allowed = await fs.realpath(root),
-    server = new McpServer({ name: "branchwork", version: "0.2.0" });
+    server = new McpServer({ name: "branchwork", version: "0.2.1" });
   async function repoBoundary(repo) {
     if (!path.isAbsolute(repo))
       throw new Error("Absolute repository path required");

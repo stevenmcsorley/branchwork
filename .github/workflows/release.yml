@@ -1,0 +1,68 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+env:
+  TAG: ${{ github.ref_name }}
+  GH_TOKEN: ${{ github.token }}
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "Branchwork ${TAG#v}" --notes-file .github/release-notes.md
+  linux:
+    needs: create
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npx install-electron
+      - run: npm run build:release
+      - run: npx --yes @vscode/vsce package --no-dependencies --allow-missing-repository --out "../dist/branchwork-pro-workspace-${TAG#v}.vsix"
+        working-directory: vscode
+      - run: ELECTRON_RUN_AS_NODE=1 dist/branchwork-*-linux-x64/electron/electron scripts/smoke-desktop.cjs dist/branchwork-*-linux-x64/app
+      - run: |
+          cd dist
+          sha256sum *.deb *.tar.gz *.vsix > SHA256SUMS-linux.txt
+          gh release upload "$TAG" *.deb *.tar.gz *.vsix SHA256SUMS-linux.txt THIRD_PARTY_LICENSES.txt --clobber
+  desktop:
+    needs: create
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            smoke: dist/desktop/win-unpacked/Branchwork.exe dist/desktop/win-unpacked/resources/app
+          - os: macos-latest
+            smoke: dist/desktop/mac-arm64/Branchwork.app/Contents/MacOS/Branchwork dist/desktop/mac-arm64/Branchwork.app/Contents/Resources/app
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:desktop
+      - name: Smoke-test the packaged app
+        run: |
+          set -- ${{ matrix.smoke }}
+          ELECTRON_RUN_AS_NODE=1 "$1" scripts/smoke-desktop.cjs "$2"
+      - run: |
+          cd dist/desktop
+          shopt -s nullglob
+          gh release upload "$TAG" *.exe *.dmg *.zip SHA256SUMS-*.txt --clobber

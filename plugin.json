@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "branchwork",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Inspect local Git repositories and use optional configured AI through Branchwork MCP tools.",
   "author": { "name": "Branchwork" },
   "extensions": {

@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { bundle, buildRuntimes } from "./build-runtime.mjs";
+import { buildRuntimes } from "./build-runtime.mjs";
+import { stageApp } from "./stage-app.mjs";
 import { dependencyNotices } from "./licenses.mjs";
 const run = promisify(execFile),
   root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -37,25 +38,7 @@ await fs.cp(
   path.join(portable, "electron"),
   { recursive: true },
 );
-await bundle("server.mjs", path.join(app, "server.mjs"));
-await fs.cp(path.join(root, "public"), path.join(app, "public"), {
-  recursive: true,
-});
-await fs.cp(path.join(root, "desktop"), path.join(app, "desktop"), {
-  recursive: true,
-});
-await fs.copyFile(
-  path.join(root, "settings.mjs"),
-  path.join(app, "settings.mjs"),
-);
-await fs.writeFile(
-  path.join(app, "package.json"),
-  JSON.stringify(
-    { name: "branchwork", version, type: "module", main: "desktop/main.cjs" },
-    null,
-    2,
-  ),
-);
+await stageApp(app);
 await fs.copyFile(path.join(root, "LICENSE"), path.join(portable, "LICENSE"));
 await fs.writeFile(path.join(portable, "THIRD_PARTY_LICENSES.txt"), notices);
 await fs.writeFile(

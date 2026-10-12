@@ -48,7 +48,7 @@ function setupProShell() {
     handle.onpointermove = (x) => {
       const percent = Math.max(
         23,
-        Math.min(70, ((x.clientY - area.top) / area.height) * 100),
+        Math.min(88, ((x.clientY - area.top) / area.height) * 100),
       );
       document.documentElement.style.setProperty(
         "--editor-height",
@@ -68,7 +68,7 @@ function setupProShell() {
         ) || 45;
       document.documentElement.style.setProperty(
         "--editor-height",
-        Math.max(23, Math.min(70, value + (e.key === "ArrowUp" ? -3 : 3))) +
+        Math.max(23, Math.min(88, value + (e.key === "ArrowUp" ? -3 : 3))) +
           "%",
       );
     }
@@ -514,6 +514,35 @@ function syntaxLine(text, path) {
   });
   return out;
 }
+async function closeEditorTab(tab) {
+  const active =
+    !!pro.file &&
+    tab.key === pro.file.path + "@" + (pro.file.revision || "working");
+  if (
+    active &&
+    pro.dirty &&
+    !confirm(`Discard unsaved changes to ${tab.path}?`)
+  )
+    return;
+  const index = pro.tabs.findIndex((t) => t.key === tab.key);
+  if (index < 0) return;
+  pro.tabs.splice(index, 1);
+  if (!active) {
+    renderEditor();
+    return;
+  }
+  pro.dirty = false;
+  pro.editing = false;
+  const next = pro.tabs[index] || pro.tabs[index - 1];
+  if (next) {
+    await openEditor(next.path, next.revision, { quiet: true });
+    return;
+  }
+  pro.fileRequest++;
+  pro.file = null;
+  renderEditor();
+  renderHome();
+}
 function renderEditor() {
   const tabs = $("#editor-tabs"),
     bar = $("#editor-bar"),
@@ -529,9 +558,24 @@ function renderEditor() {
         tab.path.split("/").pop() +
           (tab.revision ? " · " + tab.revision.slice(0, 7) : ""),
         safeAsync(() => openEditor(tab.path, tab.revision)),
-        tab.key === key ? "active" : "",
-      );
-    tabs.append(b);
+      ),
+      close = button(
+        "×",
+        safeAsync(() => closeEditorTab(tab)),
+        "tab-close",
+      ),
+      item = el("span", "editor-tab" + (tab.key === key ? " active" : ""));
+    b.title =
+      tab.path + (tab.revision ? " @ " + tab.revision.slice(0, 10) : "");
+    close.title = "Close " + tab.path.split("/").pop();
+    close.setAttribute("aria-label", close.title);
+    item.onauxclick = (e) => {
+      if (e.button !== 1) return;
+      e.preventDefault();
+      safeAsync(() => closeEditorTab(tab))();
+    };
+    item.append(b, close);
+    tabs.append(item);
   }
   if (!pro.file) {
     tabs.append(el("span", "editor-tab-empty", "WORKSPACE"));
@@ -587,7 +631,11 @@ function renderEditor() {
     ),
     button(
       "Diff",
-      safeAsync(() => showDiff(f.path, false, f.revision)),
+      safeAsync(() =>
+        f.revision
+          ? showStageDiff(f.path, f.revision)
+          : openWorkingDiff(f.path),
+      ),
     ),
   );
   if (!f.revision) {
@@ -1629,4 +1677,459 @@ showAiSettings = async function () {
     };
     discover.hidden = mode.value !== "mcp";
   }
+};
+// Expanded diff: a full-width diff that takes over the editor and graph column, like GitKraken's diff view.
+const diffStage = { current: null, expanded: false, split: false };
+try {
+  diffStage.expanded = localStorage.getItem("branchwork-diff-expanded") === "1";
+  diffStage.split = localStorage.getItem("branchwork-diff-split") === "1";
+} catch {}
+function rememberDiffStage() {
+  try {
+    localStorage.setItem(
+      "branchwork-diff-expanded",
+      diffStage.expanded ? "1" : "0",
+    );
+    localStorage.setItem("branchwork-diff-split", diffStage.split ? "1" : "0");
+  } catch {}
+}
+function diffStageNode() {
+  let stage = $("#diff-stage");
+  if (stage) return stage;
+  stage = el("section", "diff-stage");
+  stage.id = "diff-stage";
+  stage.setAttribute("aria-label", "Expanded diff");
+  stage.hidden = true;
+  const bar = el("div", "diff-stage-bar"),
+    body = el("div", "diff-stage-body");
+  bar.id = "diff-stage-bar";
+  body.id = "diff-stage-body";
+  stage.append(bar, body);
+  $(".history").append(stage);
+  return stage;
+}
+function splitDiffView(text) {
+  const table = el("div", "split-diff");
+  let left = 0,
+    right = 0,
+    dels = [],
+    adds = [];
+  const cell = (number, line, kind) => {
+    const n = el("span", "split-number " + kind, number ?? ""),
+      t = el("span", "split-text " + kind, line ?? "");
+    return [n, t];
+  };
+  const flush = () => {
+    for (let i = 0; i < Math.max(dels.length, adds.length); i++) {
+      const row = el("div", "split-row");
+      const d = dels[i],
+        a = adds[i];
+      row.append(
+        ...cell(d?.[0], d?.[1], d ? "del" : "empty"),
+        ...cell(a?.[0], a?.[1], a ? "add" : "empty"),
+      );
+      table.append(row);
+    }
+    dels = [];
+    adds = [];
+  };
+  for (const line of String(text).split("\n")) {
+    const hunk = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(line);
+    if (hunk) {
+      flush();
+      left = Number(hunk[1]);
+      right = Number(hunk[2]);
+      const row = el("div", "split-row split-hunk");
+      row.append(el("span", "", line));
+      table.append(row);
+    } else if (!left && !right) continue;
+    else if (line.startsWith("-")) dels.push([left++, line.slice(1)]);
+    else if (line.startsWith("+")) adds.push([right++, line.slice(1)]);
+    else if (line.startsWith("\\") || line === "") continue;
+    else {
+      flush();
+      const row = el("div", "split-row");
+      row.append(
+        ...cell(left++, line.slice(1), "context"),
+        ...cell(right++, line.slice(1), "context"),
+      );
+      table.append(row);
+    }
+  }
+  flush();
+  if (!table.children.length) table.append(el("p", "muted", "No differences."));
+  return table;
+}
+function closeDiffStage() {
+  const stage = $("#diff-stage");
+  if (!stage || stage.hidden) return;
+  stage.hidden = true;
+  $("#diff-stage-body").replaceChildren();
+  diffStage.current = null;
+}
+function diffModeToggle(rerender) {
+  const modes = el("div", "diff-mode");
+  for (const [label, split] of [
+    ["Unified", false],
+    ["Split", true],
+  ]) {
+    const b = button(label, () => {
+      diffStage.split = split;
+      rememberDiffStage();
+      rerender();
+    });
+    b.classList.toggle("selected", diffStage.split === split);
+    b.setAttribute("aria-pressed", String(diffStage.split === split));
+    modes.append(b);
+  }
+  return modes;
+}
+function renderDiffStage() {
+  const section = $("#diff-section");
+  if (!section) return;
+  const current = diffStage.current || {},
+    unified = section.querySelector(".diff");
+  section.querySelector(".split-diff")?.remove();
+  section.querySelector(".split-note")?.remove();
+  // File diffs follow the remembered mode; the automatic whole-commit diff expands only on request.
+  if (!current.pinned && !(diffStage.expanded && current.path)) {
+    if (!section.querySelector(".diff-expand"))
+      section.querySelector(".section-title")?.append(
+        button(
+          "⤢ Expand",
+          () => {
+            diffStage.expanded = true;
+            if (diffStage.current) diffStage.current.pinned = true;
+            rememberDiffStage();
+            renderDiffStage();
+          },
+          "diff-expand",
+        ),
+      );
+    if (unified) unified.hidden = false;
+    if (section.parentElement !== $("#details")) $("#details").append(section);
+    const stage = $("#diff-stage");
+    if (stage) stage.hidden = true;
+    return;
+  }
+  section.querySelector(".diff-expand")?.remove();
+  const stage = diffStageNode(),
+    { path, commit, staged } = current;
+  const title = el("div", "diff-stage-title");
+  title.append(
+    el("strong", "", path || "Commit diff"),
+    el(
+      "span",
+      "muted",
+      commit
+        ? "Commit " + commit.slice(0, 8)
+        : staged
+          ? "Staged changes"
+          : "Working tree changes",
+    ),
+  );
+  const modes = diffModeToggle(renderDiffStage);
+  const close = button("× Close", closeDiffStage);
+  close.title = "Close diff (Esc)";
+  $("#diff-stage-bar").replaceChildren(
+    title,
+    el("div", "spacer"),
+    modes,
+    button("⤡ Collapse to panel", () => {
+      diffStage.expanded = false;
+      if (diffStage.current) diffStage.current.pinned = false;
+      rememberDiffStage();
+      renderDiffStage();
+    }),
+    close,
+  );
+  if (unified) {
+    unified.hidden = diffStage.split;
+    if (diffStage.split) {
+      const split = splitDiffView(
+        // The unified view renders git's trailing newline as a final " " line.
+        [...unified.children]
+          .map((line) => line.textContent)
+          .join("\n")
+          .replace(/\n $/, ""),
+      );
+      unified.after(split);
+      if (!commit && path)
+        split.before(
+          el(
+            "p",
+            "muted split-note",
+            "Switch to Unified to select individual lines for staging.",
+          ),
+        );
+    }
+  }
+  $("#diff-stage-body").replaceChildren(section);
+  stage.hidden = false;
+}
+const stagedShowDiff = showDiff;
+showDiff = async function (path, staged = false, commit = null) {
+  const expected = diffVersion + 1,
+    targetRepo = repo,
+    version = viewVersion;
+  await stagedShowDiff(path, staged, commit);
+  if (
+    expected !== diffVersion ||
+    targetRepo !== repo ||
+    version !== viewVersion ||
+    commit !== (selected?.hash || null)
+  )
+    return;
+  const previous = diffStage.current;
+  diffStage.current = {
+    path,
+    staged,
+    commit,
+    pinned:
+      diffStage.forceNext ||
+      (!!previous?.pinned &&
+        previous.path === path &&
+        previous.commit === commit),
+  };
+  diffStage.forceNext = false;
+  renderDiffStage();
+};
+// Keep the expanded diff open across refreshes (for example after staging lines) while it still applies.
+const stageDetailCommit = detailCommit;
+detailCommit = async function (c, ...rest) {
+  const current = diffStage.current,
+    open = current && !$("#diff-stage")?.hidden;
+  await stageDetailCommit(c, ...rest);
+  if (!open || current.standalone) return;
+  if (current.commit && current.commit === c?.hash) {
+    if (!current.path) return;
+    await showDiff(current.path, false, current.commit);
+  } else closeDiffStage();
+};
+const stageWorking = renderWorking;
+renderWorking = function () {
+  const current = diffStage.current,
+    open = current && !$("#diff-stage")?.hidden;
+  stageWorking();
+  if (!open || current.standalone) return;
+  const file =
+    !current.commit && state.files.find((f) => f.path === current.path);
+  if (!file) {
+    closeDiffStage();
+    return;
+  }
+  const hasWorktree =
+      file.index === "?" || (file.worktree && file.worktree !== " "),
+    hasIndex = file.index && !"? ".includes(file.index);
+  const staged = current.staged
+    ? hasIndex || !hasWorktree
+    : !hasWorktree && hasIndex;
+  showDiff(current.path, staged).catch((e) => toast(e.message, true));
+};
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !$("#modal").open && !$("#diff-stage")?.hidden) {
+    e.preventDefault();
+    closeDiffStage();
+  }
+});
+// Full-width views opened from the editor: a standalone diff, and file history beside each commit's diff.
+function stageChrome(titleText, subtitle, rerender, extra = []) {
+  const stage = diffStageNode(),
+    title = el("div", "diff-stage-title"),
+    close = button("× Close", closeDiffStage);
+  title.append(el("strong", "", titleText), el("span", "muted", subtitle));
+  close.title = "Close (Esc)";
+  $("#diff-stage-bar").replaceChildren(
+    title,
+    el("div", "spacer"),
+    diffModeToggle(rerender),
+    ...extra,
+    close,
+  );
+  stage.hidden = false;
+}
+function stageDiffBlock(text) {
+  return diffStage.split ? splitDiffView(text) : diffView(text);
+}
+async function openWorkingDiff(path) {
+  if (selected) {
+    selected = null;
+    renderWorking();
+  }
+  const file = state.files.find((f) => f.path === path),
+    stagedOnly =
+      !!file &&
+      file.index !== "?" &&
+      !"? ".includes(file.index) &&
+      (!file.worktree || file.worktree === " ");
+  diffStage.forceNext = true;
+  await showDiff(path, stagedOnly);
+}
+async function showStageDiff(path, commit) {
+  const requested = repo,
+    d = await api("diff", { path, commit });
+  if (requested !== repo) return;
+  diffStage.current = { standalone: true, path, commit };
+  const render = () => {
+    stageChrome(path, "Commit " + commit.slice(0, 8), render, [
+      button(
+        "Open file at this commit",
+        safeAsync(async () => {
+          closeDiffStage();
+          await openEditor(path, commit);
+        }),
+      ),
+    ]);
+    const body = el("div", "stage-diff");
+    body.append(stageDiffBlock(d.diff));
+    $("#diff-stage-body").replaceChildren(body);
+  };
+  render();
+}
+async function showFileHistoryStage(path) {
+  const requested = repo,
+    d = await api("file-history", { path });
+  if (requested !== repo) return;
+  const commits = d.commits || [],
+    layout = el("div", "history-stage"),
+    list = el("div", "history-stage-list"),
+    pane = el("div", "history-stage-diff");
+  let active = 0,
+    diffText = null,
+    request = 0;
+  diffStage.current = { standalone: true, path };
+  list.setAttribute("role", "listbox");
+  list.setAttribute("aria-label", "Commits that changed " + path);
+  const renderPane = () => {
+    const c = commits[active];
+    if (!c) {
+      pane.replaceChildren(el("p", "muted", "No file history found."));
+      return;
+    }
+    const head = el("div", "history-stage-head"),
+      meta = el("div", "");
+    meta.append(
+      el("strong", "", c.subject),
+      el(
+        "span",
+        "muted",
+        `${c.author} · ${new Date(c.date).toLocaleString()} · ${c.hash.slice(0, 8)}`,
+      ),
+    );
+    head.append(
+      meta,
+      el("div", "spacer"),
+      button(
+        "Open file at this commit",
+        safeAsync(async () => {
+          closeDiffStage();
+          await openEditor(c.path || path, c.hash);
+        }),
+      ),
+      button(
+        "Show commit",
+        safeAsync(async () => {
+          closeDiffStage();
+          selected = c;
+          await detailCommit(c);
+        }),
+      ),
+    );
+    pane.replaceChildren(
+      head,
+      diffText === null
+        ? el("p", "muted", "Loading diff…")
+        : stageDiffBlock(diffText),
+    );
+  };
+  const select = async (index, focus = false) => {
+    active = index;
+    [...list.children].forEach((b, i) => {
+      b.classList.toggle("selected", i === index);
+      b.setAttribute("aria-selected", String(i === index));
+      b.tabIndex = i === index ? 0 : -1;
+    });
+    const item = list.children[index];
+    if (focus) item.focus();
+    item.scrollIntoView({ block: "nearest" });
+    diffText = null;
+    renderPane();
+    const r = ++request;
+    try {
+      const x = await api("diff", {
+        path: commits[index].path || path,
+        commit: commits[index].hash,
+      });
+      if (r !== request) return;
+      diffText = x.diff;
+    } catch (e) {
+      if (r !== request) return;
+      diffText = "";
+      toast(e.message, true);
+    }
+    renderPane();
+  };
+  commits.forEach((c, i) => {
+    const b = button("", () => select(i));
+    b.setAttribute("role", "option");
+    b.append(
+      el("strong", "", c.subject),
+      el(
+        "small",
+        "",
+        `${c.author} · ${new Date(c.date).toLocaleDateString()} · ${c.hash.slice(0, 7)}`,
+      ),
+    );
+    if (c.path && c.path !== path)
+      b.append(el("small", "renamed", "as " + c.path));
+    b.onkeydown = (e) => {
+      const next =
+        e.key === "ArrowDown" ? i + 1 : e.key === "ArrowUp" ? i - 1 : -1;
+      if (next < 0 || next >= commits.length) return;
+      e.preventDefault();
+      select(next, true);
+    };
+    list.append(b);
+  });
+  layout.append(list, pane);
+  const chrome = () =>
+    stageChrome(
+      "History · " + path,
+      `${commits.length} commit${commits.length === 1 ? "" : "s"}${commits.length >= 500 ? " (latest 500)" : ""} · follows renames`,
+      () => {
+        chrome();
+        renderPane();
+      },
+    );
+  chrome();
+  $("#diff-stage-body").replaceChildren(layout);
+  if (commits.length) await select(0);
+  else renderPane();
+}
+fileHistory = async function (path) {
+  try {
+    await showFileHistoryStage(path);
+  } catch (e) {
+    toast(e.message, true);
+  }
+};
+// Let the editor take the whole centre column when the graph isn't needed.
+const maximizableEditor = renderEditor;
+renderEditor = function () {
+  maximizableEditor();
+  if (!pro.file) pro.editorMax = false;
+  $(".history").classList.toggle("editor-max", !!pro.editorMax);
+  if (!pro.file) return;
+  const toggle = button(
+    pro.editorMax ? "⤡ Show graph" : "⤢ Maximize",
+    () => {
+      pro.editorMax = !pro.editorMax;
+      renderEditor();
+    },
+    "editor-max-toggle",
+  );
+  toggle.title = pro.editorMax
+    ? "Restore the commit graph below the editor"
+    : "Hide the commit graph and give the editor the full height";
+  $("#editor-bar").append(toggle);
 };

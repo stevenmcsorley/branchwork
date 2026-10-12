@@ -1,6 +1,6 @@
 # Branchwork
 
-A local Git workbench for **desktop and VS Code**: code, line blame, commit graphs, advanced Git workflows, and optional AI in one workspace.
+A local Git workbench for **Windows, macOS, Linux and VS Code**: code, line blame, commit graphs, advanced Git workflows, and optional AI in one workspace.
 
 [Download the latest release](https://github.com/stevenmcsorley/branchwork/releases/latest) · [Installation](#install) · [AI and MCP](#optional-ai-and-mcp) · [Feature coverage](research/FINDINGS.md)
 
@@ -10,7 +10,8 @@ Branchwork is an independent project inspired by GitLens-style workflows. It use
 
 ## What you can do
 
-- **Explore your code:** editable files, syntax-colored text, inline blame, line-to-commit navigation, historical file versions, visual file history, and image comparisons.
+- **Explore your code:** editable files in closable tabs, syntax-colored text, inline blame, line-to-commit navigation, historical file versions, and image comparisons. Maximize the editor to hide the graph when you're reading code.
+- **Read diffs at full width:** expand any diff over the editor and graph, switch between unified and side-by-side split views, and keep staging individual lines while expanded. File history opens full-width too, with each commit's diff of that file beside the commit list.
 - **Understand your history:** parent-aware commit graph, branch/tag labels, author views, advanced search, regex search, activity summaries, commit details, custom issue autolinks, and repository tabs.
 - **Work with Git:** file/hunk/line staging and unstaging, selective discard, amend, batch cherry-pick, revert, reset previews, branch/upstream management, stash/apply/pop, annotated tags, multiple pull policies, and push with optional force-with-lease.
 - **Manage advanced workflows:** reorder/reword/edit/squash/fixup/drop in linear interactive rebases, merge-preserving normal rebases, conflict comparisons/resolution, Gitflow features/releases/hotfixes, worktrees, submodules, LFS controls, signing settings, and ignore rules.
@@ -21,10 +22,26 @@ Branchwork is an independent project inspired by GitLens-style workflows. It use
 
 Download installers and checksums from [Releases](https://github.com/stevenmcsorley/branchwork/releases/latest).
 
+### Windows — x64
+
+Download `branchwork-0.2.1-windows-x64-setup.exe` and run it. It installs for your user account; no administrator rights are needed. A portable `branchwork-0.2.1-windows-x64.zip` is also available: extract it and run `Branchwork.exe`.
+
+[Git for Windows](https://git-scm.com/download/win) must be installed. The installer isn't code-signed yet, so SmartScreen may show **Windows protected your PC**. Choose **More info → Run anyway**.
+
+### macOS — Apple Silicon and Intel
+
+Download the `.dmg` for your Mac: `branchwork-0.2.1-macos-arm64.dmg` for Apple Silicon (M1 and later), or `branchwork-0.2.1-macos-x64.dmg` for Intel. Open it and drag **Branchwork** into Applications. `.zip` versions are also provided.
+
+Git is required: run `xcode-select --install`, or install Git with Homebrew. The app is not notarized by Apple yet, so the first launch is blocked. Open it once, then go to **System Settings → Privacy & Security** and choose **Open Anyway**. Alternatively, clear the download quarantine flag:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Branchwork.app
+```
+
 ### Linux desktop — Debian/Ubuntu, x64
 
 ```sh
-sudo apt install ./branchwork_0.2.0_amd64.deb
+sudo apt install ./branchwork_0.2.1_amd64.deb
 ```
 
 Launch **Branchwork** from your application menu. The package includes Electron and declares system Git/library dependencies. Node.js is not required to run the packaged desktop app.
@@ -32,8 +49,8 @@ Launch **Branchwork** from your application menu. The package includes Electron 
 ### Linux desktop — portable x64
 
 ```sh
-tar -xzf branchwork-0.2.0-linux-x64.tar.gz
-cd branchwork-0.2.0-linux-x64
+tar -xzf branchwork-0.2.1-linux-x64.tar.gz
+cd branchwork-0.2.1-linux-x64
 ./branchwork
 ```
 
@@ -41,10 +58,10 @@ Install Git and the GTK/NSS libraries required by Electron. Some Ubuntu configur
 
 ### VS Code extension
 
-Download `branchwork-pro-workspace-0.2.0.vsix`, then use **Extensions → … → Install from VSIX**, or:
+Download `branchwork-pro-workspace-0.2.1.vsix`, then use **Extensions → … → Install from VSIX**, or:
 
 ```sh
-code --install-extension branchwork-pro-workspace-0.2.0.vsix
+code --install-extension branchwork-pro-workspace-0.2.1.vsix
 ```
 
 Open a local Git repository, then run **Branchwork: Open Workspace** from the Command Palette. The extension includes the shared backend and UI. **Branchwork: Toggle Inline Blame** adds attribution to the native editor; **Branchwork: Show Line Commit** opens the responsible commit. Git is required; a separate Node.js installation is not required for the VSIX.
@@ -66,11 +83,22 @@ For the desktop development version:
 ```sh
 npx install-electron
 npm run desktop
-# If normal sandbox startup is blocked:
+```
+
+On Ubuntu 23.10 and later, `npm run desktop` may stop with *"The SUID sandbox helper binary was found, but is not configured correctly"*. Don't run it with `sudo`. Either start without Chromium's sandbox:
+
+```sh
 npm run desktop:compat
 ```
 
-Current prebuilt desktop downloads target Linux x64. Other operating systems can try the source version; native Windows/macOS packages have not been built or verified.
+or give Electron's sandbox helper the ownership it needs, once:
+
+```sh
+sudo chown root:root node_modules/electron/dist/chrome-sandbox
+sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
+```
+
+The packaged `.deb` sets this up for you.
 
 ## Optional AI and MCP
 
@@ -89,7 +117,7 @@ Keys are never returned to the UI or stored in browser local storage. Desktop us
 The standalone MCP release bundle requires Node.js 22+:
 
 ```sh
-tar -xzf branchwork-mcp-0.2.0.tar.gz
+tar -xzf branchwork-mcp-0.2.1.tar.gz
 BRANCHWORK_MCP_ROOT=/absolute/path/to/your/repositories node mcp/branchwork-mcp.mjs
 ```
 
@@ -106,6 +134,18 @@ Launchpad and hosting dashboards load only when requested. Creating/commenting/r
 ## Screenshots
 
 Screenshots show the running app with generated, disposable Git repositories. No private repository contents, credentials, or fabricated hosted review results are shown.
+
+<details open><summary>Full-width split diff</summary>
+
+![Expanded split diff](docs/screenshots/diff-split.png)
+
+</details>
+
+<details><summary>Full-width file history</summary>
+
+![File history](docs/screenshots/file-history.png)
+
+</details>
 
 <details><summary>Code, blame, and commit inspection</summary>
 
@@ -139,8 +179,11 @@ npm test
 npm run demo             # prints a new disposable repository path
 npm run build:runtime    # builds shared VS Code and standalone MCP runtimes
 npm run build:release    # Linux x64 portable + DEB + MCP packages
+npm run build:desktop    # Windows installer/zip or macOS dmg/zip (run on that OS)
 npm run package          # source archive
 ```
+
+Pushing a `v*` tag runs `.github/workflows/release.yml`, which builds and smoke-tests the Linux, Windows and macOS packages on their own runners and attaches them to the GitHub release. To sign builds, add the electron-builder signing secrets (`CSC_LINK`/`CSC_KEY_PASSWORD`, plus Apple notarization credentials) to the workflow.
 
 See [TESTING.md](TESTING.md) for verification and [the feature matrix](research/FINDINGS.md) for coverage and limits. Live hosting accounts, remote LFS traffic, and actual signing require your own credentials/tools and have not been verified against production services. AI protocol tests use local fixtures, not paid cloud calls. This is a working independent implementation, not a claim of complete GitLens/GitKraken equivalence.
 

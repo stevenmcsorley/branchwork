@@ -67,7 +67,7 @@ function template(value, vars) {
   return value;
 }
 export async function withMCP(config, callback) {
-  const client = new Client({ name: "branchwork", version: "0.2.0" });
+  const client = new Client({ name: "branchwork", version: "0.2.1" });
   let transport;
   if (config.transport === "http") {
     transport = new StreamableHTTPClientTransport(safeURL(config.url));
