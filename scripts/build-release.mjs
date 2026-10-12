@@ -43,7 +43,7 @@ await fs.copyFile(path.join(root, "LICENSE"), path.join(portable, "LICENSE"));
 await fs.writeFile(path.join(portable, "THIRD_PARTY_LICENSES.txt"), notices);
 await fs.writeFile(
   path.join(portable, "branchwork"),
-  '#!/bin/sh\nbranchwork_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexec "$branchwork_dir/electron/electron" "$branchwork_dir/app" "$@"\n',
+  '#!/bin/sh\nbranchwork_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexec "$branchwork_dir/electron/electron" "$@" "$branchwork_dir/app"\n',
   { mode: 0o755 },
 );
 await fs.writeFile(

@@ -1,5 +1,9 @@
 Branchwork is a local Git workbench for Windows, macOS, Linux and VS Code.
 
+## What's new in 0.2.2
+
+- **Fixed Linux portable launch:** Electron switches such as `--no-sandbox` now reach Electron before the app path, so the documented fallback works on systems that block the sandbox helper.
+
 ## What's new in 0.2.1
 
 - **Windows and macOS builds:** a Windows installer and portable zip, and macOS builds for Apple Silicon and Intel.

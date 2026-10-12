@@ -24,13 +24,13 @@ Download installers and checksums from [Releases](https://github.com/stevenmcsor
 
 ### Windows — x64
 
-Download `branchwork-0.2.1-windows-x64-setup.exe` and run it. It installs for your user account; no administrator rights are needed. A portable `branchwork-0.2.1-windows-x64.zip` is also available: extract it and run `Branchwork.exe`.
+Download `branchwork-0.2.2-windows-x64-setup.exe` and run it. It installs for your user account; no administrator rights are needed. A portable `branchwork-0.2.2-windows-x64.zip` is also available: extract it and run `Branchwork.exe`.
 
 [Git for Windows](https://git-scm.com/download/win) must be installed. The installer isn't code-signed yet, so SmartScreen may show **Windows protected your PC**. Choose **More info → Run anyway**.
 
 ### macOS — Apple Silicon and Intel
 
-Download the `.dmg` for your Mac: `branchwork-0.2.1-macos-arm64.dmg` for Apple Silicon (M1 and later), or `branchwork-0.2.1-macos-x64.dmg` for Intel. Open it and drag **Branchwork** into Applications. `.zip` versions are also provided.
+Download the `.dmg` for your Mac: `branchwork-0.2.2-macos-arm64.dmg` for Apple Silicon (M1 and later), or `branchwork-0.2.2-macos-x64.dmg` for Intel. Open it and drag **Branchwork** into Applications. `.zip` versions are also provided.
 
 Git is required: run `xcode-select --install`, or install Git with Homebrew. The app is not notarized by Apple yet, so the first launch is blocked. Open it once, then go to **System Settings → Privacy & Security** and choose **Open Anyway**. Alternatively, clear the download quarantine flag:
 
@@ -41,7 +41,7 @@ xattr -dr com.apple.quarantine /Applications/Branchwork.app
 ### Linux desktop — Debian/Ubuntu, x64
 
 ```sh
-sudo apt install ./branchwork_0.2.1_amd64.deb
+sudo apt install ./branchwork_0.2.2_amd64.deb
 ```
 
 Launch **Branchwork** from your application menu. The package includes Electron and declares system Git/library dependencies. Node.js is not required to run the packaged desktop app.
@@ -49,8 +49,8 @@ Launch **Branchwork** from your application menu. The package includes Electron 
 ### Linux desktop — portable x64
 
 ```sh
-tar -xzf branchwork-0.2.1-linux-x64.tar.gz
-cd branchwork-0.2.1-linux-x64
+tar -xzf branchwork-0.2.2-linux-x64.tar.gz
+cd branchwork-0.2.2-linux-x64
 ./branchwork
 ```
 
@@ -58,10 +58,10 @@ Install Git and the GTK/NSS libraries required by Electron. Some Ubuntu configur
 
 ### VS Code extension
 
-Download `branchwork-pro-workspace-0.2.1.vsix`, then use **Extensions → … → Install from VSIX**, or:
+Download `branchwork-pro-workspace-0.2.2.vsix`, then use **Extensions → … → Install from VSIX**, or:
 
 ```sh
-code --install-extension branchwork-pro-workspace-0.2.1.vsix
+code --install-extension branchwork-pro-workspace-0.2.2.vsix
 ```
 
 Open a local Git repository, then run **Branchwork: Open Workspace** from the Command Palette. The extension includes the shared backend and UI. **Branchwork: Toggle Inline Blame** adds attribution to the native editor; **Branchwork: Show Line Commit** opens the responsible commit. Git is required; a separate Node.js installation is not required for the VSIX.
@@ -117,7 +117,7 @@ Keys are never returned to the UI or stored in browser local storage. Desktop us
 The standalone MCP release bundle requires Node.js 22+:
 
 ```sh
-tar -xzf branchwork-mcp-0.2.1.tar.gz
+tar -xzf branchwork-mcp-0.2.2.tar.gz
 BRANCHWORK_MCP_ROOT=/absolute/path/to/your/repositories node mcp/branchwork-mcp.mjs
 ```
 
