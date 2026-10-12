@@ -12,7 +12,7 @@ function escapeHTML(value) {
   );
 }
 function panelHTML(origin, url) {
-  return `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; frame-src ${escapeHTML(origin)}; style-src 'unsafe-inline';"><style>html,body,iframe{width:100%;height:100%;margin:0;border:0;overflow:hidden}body{background:#0c0d12}</style></head><body><iframe title="Branchwork Pro Workspace" src="${escapeHTML(url)}" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-downloads"></iframe></body></html>`;
+  return `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; frame-src ${escapeHTML(origin)}; style-src 'unsafe-inline';"><style>html,body,iframe{width:100%;height:100%;margin:0;padding:0;border:0;overflow:hidden;display:block}body{background:#0c0d12}</style></head><body><iframe title="Branchwork Pro Workspace" src="${escapeHTML(url)}" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-downloads"></iframe></body></html>`;
 }
 function createExtension(vscode, context, options = {}) {
   let runtimePromise,

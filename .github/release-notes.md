@@ -8,6 +8,11 @@ Branchwork is a local Git workbench for Windows, macOS, Linux and VS Code.
 - **The editor's Diff button opens full-width**, including on historical file versions. Previously it did nothing while a commit was selected in the graph.
 - **Closable editor tabs:** each tab has a × button, and middle-click also closes a tab. Unsaved edits ask before closing.
 - **Maximize the editor** to hide the commit graph, and drag the editor/graph divider further than before.
+- **Visual overhaul:** a consistent icon set, a readable type scale, and redesigned header, rail, toolbar, graph rows and inspector.
+- **Blame gutter:** blame appears as a sticky gutter showing author, relative age and an age heat bar, once per run of lines from the same commit. It replaces the scattered inline notes.
+- **Diff toolbar:** click changed lines to select them (shift-click for a range), then use **Stage / Unstage / Discard N lines**. **Stage hunk** sits on each hunk header.
+- **Fixed:** merge commits showed "No differences". Their diff, file list and line counts now compare against the first parent.
+- **Fixed:** the VS Code panel was clipped on the right by the webview's default padding.
 
 ## Downloads
 

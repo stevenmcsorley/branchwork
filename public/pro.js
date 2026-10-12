@@ -2349,7 +2349,46 @@ const iconLabels = new Map([
   ["Show commit", ["commit", "Show commit"]],
   ["Image diff", ["image", "Image diff"]],
 ]);
+// Leading text glyphs that older views use as icons.
+const glyphIcons = {
+  "✧": "sparkles",
+  "⑂": "branch",
+  "●": "dot",
+  "◉": "dot",
+  "◇": "tag",
+  "◈": "cloud",
+  "▣": "folder",
+};
+function replaceGlyph(node) {
+  const first = node.firstChild;
+  if (first?.nodeType !== Node.TEXT_NODE) return false;
+  const match = /^\s*([✧⑂●◉◇◈▣])\s*/.exec(first.textContent);
+  if (!match) return false;
+  first.textContent = first.textContent.slice(match[0].length);
+  const svg = icon(glyphIcons[match[1]], 14);
+  if (match[1] === "●" || match[1] === "◉") svg.classList.add("icon-current");
+  node.insertBefore(svg, first);
+  if (node.matches("button")) node.classList.add("has-glyph-icon");
+  return true;
+}
 function decorate(root = document) {
+  for (const n of root.querySelectorAll(
+    "button, .repo-card-branch, #branch-label, .file-symbol",
+  )) {
+    if (n.classList.contains("file-symbol")) {
+      if (!n.querySelector(".icon")) n.replaceChildren(icon("file", 13));
+      continue;
+    }
+    if (!n.querySelector(":scope > .icon")) replaceGlyph(n);
+  }
+  for (const b of root.querySelectorAll(".file-row > button:not(.path)")) {
+    const action = {
+      "+": ["plus", "Stage file"],
+      "−": ["minus", "Unstage file"],
+      "×": ["undo", "Discard changes"],
+    }[b.textContent.trim()];
+    if (action) iconButton(b, action[0], action[1], true);
+  }
   for (const b of root.querySelectorAll("button:not(.icon-only)")) {
     if (b.querySelector(":scope > .icon")) continue;
     const match = iconLabels.get(b.textContent.trim());

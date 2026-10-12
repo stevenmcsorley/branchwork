@@ -574,3 +574,50 @@ footer button {
 .changed-file > button.icon-only:focus-visible {
   opacity: 1;
 }
+
+/* Glyph-derived icons in lists */
+.has-glyph-icon,
+.repo-card-branch,
+#branch-label,
+#changes-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.sidebar-section button.has-glyph-icon .icon,
+.repo-card-branch .icon,
+#branch-label .icon {
+  color: var(--faint);
+}
+.icon-current {
+  color: var(--accent) !important;
+  width: 10px;
+  height: 10px;
+}
+.file-symbol {
+  display: inline-flex;
+  color: var(--faint);
+}
+
+/* Working file rows */
+.file-row {
+  align-items: center;
+  border-radius: 5px;
+}
+.file-row:hover {
+  background: var(--hover);
+}
+.file-row .status {
+  font: 600 var(--fs-xs) var(--mono);
+  width: 14px;
+  text-align: center;
+}
+.file-row > button.icon-only {
+  width: 24px;
+  height: 24px;
+  opacity: 0.6;
+}
+.file-row:hover > button.icon-only,
+.file-row > button.icon-only:focus-visible {
+  opacity: 1;
+}

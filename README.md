@@ -4,7 +4,7 @@ A local Git workbench for **Windows, macOS, Linux and VS Code**: code, line blam
 
 [Download the latest release](https://github.com/stevenmcsorley/branchwork/releases/latest) · [Installation](#install) · [AI and MCP](#optional-ai-and-mcp) · [Feature coverage](research/FINDINGS.md)
 
-![Branchwork editor, commit graph, and inspector](docs/screenshots/workspace.png)
+![Branchwork: editor with blame gutter, commit graph, and commit details](docs/screenshots/workspace.png)
 
 Branchwork is an independent project inspired by GitLens-style workflows. It uses your local Git repositories and existing Git credentials. GitKraken accounts, subscriptions, cloud patches, cloud workspaces, profile sync, and vendor AI services are not required or included. This project is not affiliated with GitKraken or GitLens.
 
@@ -147,13 +147,7 @@ Screenshots show the running app with generated, disposable Git repositories. No
 
 </details>
 
-<details><summary>Code, blame, and commit inspection</summary>
-
-![Code and blame](docs/screenshots/history-blame.png)
-
-</details>
-
-<details><summary>Individual-line staging</summary>
+<details><summary>Selecting individual lines to stage</summary>
 
 ![Line staging](docs/screenshots/line-staging.png)
 
@@ -187,4 +181,4 @@ Pushing a `v*` tag runs `.github/workflows/release.yml`, which builds and smoke-
 
 See [TESTING.md](TESTING.md) for verification and [the feature matrix](research/FINDINGS.md) for coverage and limits. Live hosting accounts, remote LFS traffic, and actual signing require your own credentials/tools and have not been verified against production services. AI protocol tests use local fixtures, not paid cloud calls. This is a working independent implementation, not a claim of complete GitLens/GitKraken equivalence.
 
-The original GitKraken installer/extraction is kept out of the repository and release packages. Source is MIT licensed; bundled dependencies retain their own licenses and notices.
+The original GitKraken installer/extraction is kept out of the repository and release packages. Source is MIT licensed; bundled dependencies retain their own licenses and notices. Interface icons are adapted from [Lucide](https://lucide.dev) (ISC license).
