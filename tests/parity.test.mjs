@@ -9,9 +9,11 @@ import { read, write } from "../server.mjs";
 const exec = promisify(execFile);
 test("followed file history opens historical paths across spaces and newline renames", async (t) => {
   const { repo, w, r, g, commit } = await fixture(t);
-  const old = "old name\nfile.txt",
-    middle = "middle name\nfile.txt",
-    current = "current name\nfile.txt";
+  // Windows filenames cannot contain newlines; spaces still exercise quoted paths there.
+  const gap = process.platform === "win32" ? " " : "\n",
+    old = `old name${gap}file.txt`,
+    middle = `middle name${gap}file.txt`,
+    current = `current name${gap}file.txt`;
   await commit(old, "original content\n", "original");
   await g("mv", "--", old, middle);
   await w("commit", { message: "rename middle" });

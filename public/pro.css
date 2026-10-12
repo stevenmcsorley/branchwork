@@ -1459,3 +1459,154 @@ dialog {
 .light .history-stage-list button.selected {
   background: #efe9fb;
 }
+/* Diff toolbar */
+.diff-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 5px 6px 5px 10px;
+  background: #211a29;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+}
+.diff-toolbar + .diff,
+.diff-toolbar ~ .split-diff {
+  border: 1px solid var(--border);
+  border-radius: 0 0 6px 6px;
+}
+.diff-toolbar .spacer {
+  flex: 1;
+}
+.diff-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+#details .diff-selection {
+  display: none;
+}
+#details .diff-toolbar {
+  padding-left: 6px;
+}
+.is-split .diff-toolbar-group:not(.diff-toolbar-files) {
+  display: none;
+}
+.diff-selection {
+  color: var(--muted);
+  font-size: 10.5px;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.diff-toolbar button {
+  height: 24px;
+  padding: 0 9px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.diff-ghost {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--muted);
+}
+.diff-ghost:hover {
+  background: #ffffff0f;
+  color: var(--text);
+}
+.diff-action.primary {
+  background: #8f46d1;
+  border: 1px solid #ac73dc;
+  color: #fff;
+}
+.diff-action.primary:hover:not(:disabled) {
+  background: #a161d9;
+}
+.diff-action.danger {
+  background: none;
+  border: 1px solid #5b2c3e;
+  color: var(--red);
+}
+.diff-action.danger:hover:not(:disabled) {
+  background: #3a2030;
+}
+.diff-action.warning {
+  background: #4a3410;
+  border: 1px solid #8a6420;
+  color: #f3cf86;
+}
+.diff-toolbar button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+/* Selectable diff lines: the whole row is the hit target; the checkbox stays for keyboard users. */
+.diff.selectable > .add,
+.diff.selectable > .del {
+  cursor: pointer;
+  position: relative;
+}
+.diff.selectable > div > input[type="checkbox"] {
+  width: 11px;
+  height: 11px;
+  margin: 0 8px 0 0;
+  opacity: 0.35;
+  accent-color: var(--accent);
+}
+.diff.selectable > div:hover > input[type="checkbox"],
+.diff.selectable > div > input[type="checkbox"]:checked,
+.diff.selectable > div > input[type="checkbox"]:focus-visible {
+  opacity: 1;
+}
+.diff.selectable > .add:hover {
+  background: #26402f;
+}
+.diff.selectable > .del:hover {
+  background: #47273a;
+}
+.diff > .line-selected {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.diff > .add.line-selected {
+  background: #2c4a36;
+}
+.diff > .del.line-selected {
+  background: #552c42;
+}
+.diff > .hunk {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+}
+.hunk-actions {
+  margin-left: auto;
+  padding-left: 16px;
+  position: sticky;
+  right: 0;
+  padding-right: 4px;
+  background: linear-gradient(90deg, transparent, #282140 16px);
+  opacity: 0.7;
+  transition: opacity 0.12s;
+}
+.diff > .hunk:hover .hunk-actions,
+.hunk-actions:focus-within {
+  opacity: 1;
+}
+.hunk-action {
+  height: 20px;
+  padding: 0 8px;
+  font-size: 10.5px;
+  border-radius: 4px;
+  background: #3a2d55;
+  border: 1px solid #5a4685;
+  color: #e2d6fb;
+}
+.hunk-action:hover {
+  background: #4b3a6e;
+}
+.light .diff-toolbar {
+  background: #f3effa;
+}

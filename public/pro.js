@@ -1807,6 +1807,7 @@ function renderDiffStage() {
         ),
       );
     if (unified) unified.hidden = false;
+    section.classList.remove("is-split");
     if (section.parentElement !== $("#details")) $("#details").append(section);
     const stage = $("#diff-stage");
     if (stage) stage.hidden = true;
@@ -1843,13 +1844,14 @@ function renderDiffStage() {
     }),
     close,
   );
+  section.classList.toggle("is-split", diffStage.split);
   if (unified) {
     unified.hidden = diffStage.split;
     if (diffStage.split) {
       const split = splitDiffView(
         // The unified view renders git's trailing newline as a final " " line.
         [...unified.children]
-          .map((line) => line.textContent)
+          .map((line) => line.dataset.line ?? line.textContent)
           .join("\n")
           .replace(/\n $/, ""),
       );
@@ -1866,6 +1868,136 @@ function renderDiffStage() {
   }
   $("#diff-stage-body").replaceChildren(section);
   stage.hidden = false;
+}
+// Replaces the loose buttons under a diff with one toolbar, and puts hunk staging on each hunk header.
+function polishDiffSection(section, { path, staged, commit }) {
+  const pre = section.querySelector(".diff");
+  if (!pre || section.querySelector(".diff-toolbar")) return;
+  const take = (label) => {
+    const b = [...section.querySelectorAll("button")].find(
+      (x) => x.textContent === label && !x.closest(".diff"),
+    );
+    b?.remove();
+    return b;
+  };
+  const toolbar = el("div", "diff-toolbar"),
+    lineGroup = el("div", "diff-toolbar-group"),
+    fileGroup = el("div", "diff-toolbar-group diff-toolbar-files");
+  const lineActions = [
+    ["Stage selected lines", "Stage", "primary"],
+    ["Unstage selected lines", "Unstage", "primary"],
+    ["Discard selected lines", "Discard", "danger"],
+  ]
+    .map(([label, verb, kind]) => {
+      const b = take(label);
+      if (!b) return null;
+      b.className = "diff-action " + kind;
+      b.dataset.verb = verb;
+      return b;
+    })
+    .filter(Boolean);
+  const checkboxes = () => [...pre.querySelectorAll("input[type=checkbox]")];
+  const count = el("span", "diff-selection");
+  const update = () => {
+    const n = checkboxes().filter((c) => c.checked).length;
+    count.textContent = n
+      ? `${n} line${n === 1 ? "" : "s"} selected`
+      : "Click changed lines to select them";
+    for (const b of lineActions) {
+      b.disabled = !n;
+      b.textContent = n
+        ? `${b.dataset.verb} ${n} line${n === 1 ? "" : "s"}`
+        : `${b.dataset.verb} lines`;
+    }
+    pre
+      .querySelectorAll("div")
+      .forEach((line) =>
+        line.classList.toggle(
+          "line-selected",
+          !!line.querySelector("input:checked"),
+        ),
+      );
+  };
+  if (lineActions.length && checkboxes().length) {
+    let last = null;
+    pre.classList.add("selectable");
+    pre.addEventListener("change", update);
+    // Click anywhere on a changed line to select it; shift-click selects a range.
+    pre.addEventListener("mousedown", (e) => {
+      if (e.shiftKey && e.target.closest(".diff > .add, .diff > .del"))
+        e.preventDefault();
+    });
+    pre.addEventListener("click", (e) => {
+      const line = e.target.closest(".diff > div"),
+        box = line?.querySelector("input[type=checkbox]");
+      if (!box) return;
+      const boxes = checkboxes(),
+        index = boxes.indexOf(box);
+      if (e.target !== box) box.checked = !box.checked;
+      if (e.shiftKey && last !== null) {
+        const [from, to] = [Math.min(last, index), Math.max(last, index)];
+        boxes.slice(from, to + 1).forEach((b) => (b.checked = box.checked));
+      }
+      last = index;
+      update();
+    });
+    const clear = button(
+      "Clear",
+      () => {
+        checkboxes().forEach((b) => (b.checked = false));
+        update();
+      },
+      "diff-ghost",
+    );
+    lineGroup.append(count, clear, ...lineActions);
+    update();
+  } else lineActions.forEach((b) => b.remove());
+  section.querySelectorAll(".detail-actions").forEach((n) => {
+    if (!n.children.length) n.remove();
+  });
+  for (const [label, text, title] of [
+    ["View HEAD file", "HEAD", "View this file as committed at HEAD"],
+    ["Blame", "Blame", "Show who last changed each line"],
+    ["File history", "History", "Every commit that changed this file"],
+    [
+      "Image comparison",
+      "Compare image",
+      "Compare image versions side by side",
+    ],
+  ]) {
+    const b = take(label);
+    if (!b || b.disabled) continue;
+    b.textContent = text;
+    b.title = title;
+    b.className = "diff-ghost";
+    fileGroup.append(b);
+  }
+  const resolve = take("Resolve conflict");
+  if (resolve) {
+    resolve.className = "diff-action warning";
+    fileGroup.prepend(resolve);
+  }
+  // Hunk staging moves from the "Stage individual hunks" list onto each @@ header.
+  const fold = section.querySelector(".hunk-list");
+  if (fold) {
+    const hunkButtons = [...fold.querySelectorAll(".hunk-item button")],
+      headers = [...pre.querySelectorAll(":scope > .hunk")];
+    hunkButtons.forEach((b, i) => {
+      const header = headers[i];
+      if (!header) return;
+      header.dataset.line = header.textContent;
+      b.textContent = staged ? "Unstage hunk" : "Stage hunk";
+      b.className = "hunk-action";
+      const wrap = el("span", "hunk-actions");
+      wrap.append(b);
+      header.append(wrap);
+    });
+    fold.remove();
+  }
+  if (lineGroup.children.length) toolbar.append(lineGroup);
+  toolbar.append(el("div", "spacer"));
+  if (fileGroup.children.length) toolbar.append(fileGroup);
+  if (toolbar.children.length > 1) pre.before(toolbar);
 }
 const stagedShowDiff = showDiff;
 showDiff = async function (path, staged = false, commit = null) {
@@ -1892,6 +2024,8 @@ showDiff = async function (path, staged = false, commit = null) {
         previous.commit === commit),
   };
   diffStage.forceNext = false;
+  const section = $("#diff-section");
+  if (section) polishDiffSection(section, diffStage.current);
   renderDiffStage();
 };
 // Keep the expanded diff open across refreshes (for example after staging lines) while it still applies.

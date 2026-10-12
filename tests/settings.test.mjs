@@ -31,8 +31,11 @@ test("AI starts disabled, metadata persists, session secrets never enter disk or
     "utf8",
   );
   assert.equal(saved.includes("test-secret-value"), false);
-  const stat = await fs.stat(path.join(directory, "settings.json"));
-  assert.equal(stat.mode & 0o777, 0o600);
+  // Windows has no POSIX permission bits; the directory ACL protects the file there.
+  if (process.platform !== "win32") {
+    const stat = await fs.stat(path.join(directory, "settings.json"));
+    assert.equal(stat.mode & 0o777, 0o600);
+  }
   const next = createSettingsStore({ directory });
   assert.equal((await next.load()).ai.model, "test-model");
   assert.equal((await next.load()).ai.apiKey, "");

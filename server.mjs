@@ -871,7 +871,8 @@ export async function read(body) {
           value = rest.join(" ");
         if (key === "worktree") {
           item = {
-            path: value,
+            // Git prints forward slashes on Windows; return native paths.
+            path: path.normalize(value),
             head: "",
             branch: "",
             bare: false,
