@@ -663,43 +663,85 @@ function renderEditor() {
     code.append(textarea);
     return;
   }
-  const blameByLine = new Map((f.blame || []).map((b) => [b.line, b]));
+  const blameByLine = new Map((f.blame || []).map((b) => [b.line, b])),
+    withBlame = pro.showBlame && blameByLine.size > 0,
+    dates = (f.blame || [])
+      .filter((b) => !/^0+$/.test(b.hash))
+      .map((b) => Date.parse(b.date)),
+    newest = Math.max(...dates),
+    oldest = Math.min(...dates);
+  code.classList.toggle("with-blame", withBlame);
+  let previousHash = null;
   f.content.split("\n").forEach((text, i) => {
     const row = el("div", "code-line");
     row.append(el("span", "line-number", String(i + 1)));
+    if (withBlame) {
+      const blame = blameByLine.get(i + 1),
+        gutter = el("span", "blame-gutter");
+      if (blame) {
+        const uncommitted = /^0+$/.test(blame.hash),
+          first = blame.hash !== previousHash;
+        previousHash = blame.hash;
+        // Heat: newer commits are brighter, as in GitLens' gutter.
+        const heat = uncommitted
+          ? 1
+          : newest === oldest
+            ? 0.7
+            : 0.2 +
+              (0.8 * (Date.parse(blame.date) - oldest)) / (newest - oldest);
+        gutter.style.setProperty("--heat", heat.toFixed(2));
+        gutter.classList.toggle("blame-start", first);
+        gutter.classList.toggle("uncommitted", uncommitted);
+        if (first) {
+          const note = button(
+            "",
+            safeAsync(async () => {
+              if (uncommitted) {
+                selected = null;
+                renderWorking();
+                return;
+              }
+              const d = await api("commit-detail", { commit: blame.hash });
+              await detailCommit(d.commit);
+            }),
+            "blame-note",
+          );
+          note.append(
+            el("span", "blame-author", uncommitted ? "You" : blame.author),
+            el(
+              "span",
+              "blame-age",
+              uncommitted ? "Uncommitted" : relativeAge(blame.date),
+            ),
+          );
+          note.title = uncommitted
+            ? "Uncommitted change"
+            : `${blame.summary}\n${blame.author} <${blame.email}>\n${new Date(blame.date).toLocaleString()}\n${blame.hash}`;
+          gutter.append(note);
+        }
+      }
+      row.append(gutter);
+    }
     const line = el("span", "line-text");
     line.append(syntaxLine(text || " ", f.path));
     row.append(line);
-    const blame = pro.showBlame ? blameByLine.get(i + 1) : null;
-    if (blame) {
-      const uncommitted = /^0+$/.test(blame.hash),
-        note = button(
-          uncommitted
-            ? "Uncommitted changes"
-            : blame.author +
-                " · " +
-                new Date(blame.date).toLocaleDateString(undefined, {
-                  month: "short",
-                  day: "numeric",
-                }),
-          safeAsync(async () => {
-            if (uncommitted) {
-              selected = null;
-              renderWorking();
-              return;
-            }
-            const d = await api("commit-detail", { commit: blame.hash });
-            await detailCommit(d.commit);
-          }),
-          "inline-blame",
-        );
-      note.title = uncommitted
-        ? "Uncommitted line"
-        : `${blame.author} <${blame.email}>\n${blame.date}\n${blame.hash}\n${blame.summary}`;
-      row.append(note);
-    }
     code.append(row);
   });
+}
+function relativeAge(date) {
+  const seconds = (Date.parse(date) - Date.now()) / 1000,
+    format = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  for (const [unit, size] of [
+    ["year", 31536000],
+    ["month", 2592000],
+    ["week", 604800],
+    ["day", 86400],
+    ["hour", 3600],
+    ["minute", 60],
+  ])
+    if (Math.abs(seconds) >= size)
+      return format.format(Math.round(seconds / size), unit);
+  return "just now";
 }
 async function saveEditor() {
   const f = pro.file;
@@ -978,21 +1020,38 @@ detailCommit = async function (c) {
       deleted: files.reduce((n, f) => n + (Number(f.deleted) || 0), 0),
     });
     renderLog();
-    const summary = el("div", "detail-section");
-    summary.append(
-      el("div", "section-title", "CHANGES"),
-      outputView(d.stat || ""),
-    );
-    files.forEach((f) => {
-      const b = button(
-        `${f.path}${f.binary ? " · binary" : `  +${f.added} −${f.deleted}`}`,
-        safeAsync(() => openEditor(f.path, hash)),
-        "path",
+    // One changed-files list: path, line counts, and a shortcut to the committed file.
+    const stats = new Map(files.map((f) => [f.path, f]));
+    for (const b of $("#details").querySelectorAll(
+      ".detail-section > button.path",
+    )) {
+      if (b.closest(".changed-file")) continue;
+      const filePath = b.textContent,
+        stat = stats.get(filePath),
+        slash = filePath.lastIndexOf("/"),
+        row = el("div", "changed-file");
+      b.replaceChildren(
+        el("span", "file-name", filePath.slice(slash + 1)),
+        el("span", "file-dir", slash > 0 ? filePath.slice(0, slash) : ""),
       );
-      b.title = "Open committed version in editor";
-      summary.append(b);
-    });
-    $("#details").append(summary);
+      b.title = "Show the diff for " + filePath;
+      if (stat?.binary) b.append(el("span", "file-stat", "binary"));
+      else if (stat && Number.isFinite(Number(stat.added))) {
+        const counts = el("span", "file-stat");
+        counts.append(
+          el("span", "added", "+" + stat.added),
+          el("span", "deleted", "−" + stat.deleted),
+        );
+        b.append(counts);
+      }
+      const open = button(
+        "",
+        safeAsync(() => openEditor(filePath, hash)),
+      );
+      iconButton(open, "file", "Open file at this commit", true);
+      b.replaceWith(row);
+      row.append(b, open);
+    }
   } catch (e) {
     if (selected?.hash === hash) toast(e.message, true);
   }
@@ -2267,3 +2326,80 @@ renderEditor = function () {
     : "Hide the commit graph and give the editor the full height";
   $("#editor-bar").append(toggle);
 };
+// Icons for the shell and for buttons rendered by the views above, matched by their label.
+const iconLabels = new Map([
+  ["History", ["history", "History"]],
+  ["Diff", ["diff", "Diff"]],
+  ["Edit", ["edit", "Edit"]],
+  ["Preview", ["eye", "Preview"]],
+  ["Save", ["save", "Save"]],
+  ["Blame on", ["user", "Blame"]],
+  ["Blame off", ["user", "Blame"]],
+  ["⤢ Maximize", ["maximize", "Maximize"]],
+  ["⤡ Show graph", ["minimize", "Show graph"]],
+  ["Unified", ["unified", "Unified"]],
+  ["Split", ["split", "Split"]],
+  ["⤡ Collapse to panel", ["minimize", "Collapse"]],
+  ["× Close", ["close", "Close (Esc)", true]],
+  ["⤢ Expand", ["maximize", "Expand"]],
+  ["HEAD", ["file", "HEAD"]],
+  ["Blame", ["user", "Blame"]],
+  ["Compare image", ["image", "Compare image"]],
+  ["Open file at this commit", ["file", "Open file"]],
+  ["Show commit", ["commit", "Show commit"]],
+  ["Image diff", ["image", "Image diff"]],
+]);
+function decorate(root = document) {
+  for (const b of root.querySelectorAll("button:not(.icon-only)")) {
+    if (b.querySelector(":scope > .icon")) continue;
+    const match = iconLabels.get(b.textContent.trim());
+    if (!match) continue;
+    const pressed = b.textContent.trim() === "Blame on";
+    iconButton(b, match[0], match[1], match[2]);
+    if (b.textContent === "Blame" && b.closest("#editor-bar"))
+      b.classList.toggle("on", pressed);
+  }
+}
+(function decorateShell() {
+  const brand = $(".brand");
+  if (brand) {
+    brand.replaceChildren(icon("branch", 17), el("span", "", "Branchwork"));
+  }
+  $(".welcome-icon")?.replaceChildren(icon("branch", 44));
+  iconButton($("#open"), "folder", "Open repository");
+  iconButton($("#refresh"), "refresh", "Refresh (Ctrl+R)", true);
+  iconButton($("#settings"), "settings", "Settings", true);
+  for (const [command, name, label] of [
+    ["branch", "branch", "Branch"],
+    ["fetch", "fetch", "Fetch"],
+    ["pull", "pull", "Pull"],
+    ["push", "push", "Push"],
+    ["stash", "stash", "Stash"],
+  ])
+    iconButton($(`.toolbar [data-command="${command}"]`), name, label);
+  iconButton($("#more"), "more", "More", true);
+  const railIcons = {
+    Home: "home",
+    Launchpad: "dashboard",
+    "File explorer": "files",
+    "Commit graph": "graph",
+    "AI assistant": "sparkles",
+    "Toggle inspector": "panel",
+    "Workspace settings": "settings",
+  };
+  for (const b of document.querySelectorAll(".icon-rail button")) {
+    const label = b.getAttribute("aria-label");
+    if (railIcons[label]) iconButton(b, railIcons[label], label, true);
+  }
+})();
+// Views re-render often; decorate whatever they produced once per frame.
+let decoratePending = false;
+new MutationObserver(() => {
+  if (decoratePending) return;
+  decoratePending = true;
+  requestAnimationFrame(() => {
+    decoratePending = false;
+    decorate();
+  });
+}).observe(document.body, { childList: true, subtree: true });
+decorate();

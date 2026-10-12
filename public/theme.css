@@ -1,0 +1,576 @@
+/* Branchwork visual system: type scale, colour tokens and components, applied over style.css and pro.css. */
+:root {
+  --bg: #15121b;
+  --panel: #1a1621;
+  --raised: #231e2c;
+  --hover: #2a2435;
+  --border: #2b2535;
+  --border-strong: #3a3247;
+  --text: #ebe6f2;
+  --muted: #a297b1;
+  --faint: #716884;
+  --accent: #b083ff;
+  --accent-strong: #8c52ec;
+  --accent-soft: #b083ff1f;
+  --ui:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto,
+    Ubuntu, sans-serif;
+  --mono:
+    "JetBrains Mono", "SF Mono", "Cascadia Code", Menlo, Consolas,
+    "Ubuntu Mono", ui-monospace, monospace;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 13px;
+}
+body {
+  font: var(--fs-md) / 1.45 var(--ui);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+::selection {
+  background: #8c52ec66;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3247 transparent;
+}
+
+/* Buttons */
+button {
+  font: 500 var(--fs-sm) / 1 var(--ui);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--raised);
+  color: var(--text);
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+button:hover:not(:disabled) {
+  background: var(--hover);
+  border-color: #4a4059;
+}
+button:has(> .icon) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+button > .icon {
+  flex: none;
+  opacity: 0.9;
+}
+button.icon-only {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  justify-content: center;
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+button.icon-only:hover:not(:disabled) {
+  background: var(--hover);
+  border-color: transparent;
+  color: var(--text);
+}
+.primary,
+button.primary {
+  background: var(--accent-strong);
+  border-color: #a06ff5;
+  color: #fff;
+}
+.primary:hover:not(:disabled),
+button.primary:hover:not(:disabled) {
+  background: #9a63f2;
+  border-color: #b48af8;
+}
+input,
+textarea,
+select {
+  font: var(--fs-md) var(--ui);
+  border-radius: 6px;
+}
+
+/* Header and repository tabs */
+header {
+  background: #131018;
+  border-bottom: 1px solid var(--border);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 650 var(--fs-md) var(--ui);
+  letter-spacing: 0.01em;
+}
+.brand .icon {
+  color: var(--accent);
+}
+header button {
+  font-size: var(--fs-sm);
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  padding: 5px 9px;
+}
+header button:hover:not(:disabled) {
+  background: var(--hover);
+  border-color: transparent;
+  color: var(--text);
+}
+.repo-tabs {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.repo-tabs button {
+  font-size: var(--fs-sm);
+  border-radius: 0;
+}
+
+/* Icon rail */
+main > .icon-rail {
+  background: #17131d;
+  gap: 4px;
+  align-items: center;
+}
+.icon-rail button.icon-only {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  position: relative;
+}
+.icon-rail button.icon-only .icon {
+  width: 18px;
+  height: 18px;
+}
+.icon-rail button.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.icon-rail button.active::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+/* Sidebar */
+aside {
+  background: var(--panel);
+}
+.home-header,
+.home-section:has(.activity-sparkline) {
+  display: none;
+}
+.home-switch button {
+  font-size: var(--fs-sm);
+}
+.repo-heading small,
+.repo-card-branch {
+  font-size: var(--fs-xs);
+}
+.sidebar-section h3,
+.home-section h3,
+.launchpad-group h4 {
+  font: 600 10.5px var(--ui);
+  letter-spacing: 0.07em;
+  color: var(--faint);
+}
+.sidebar-section button,
+.recent-list button {
+  font-size: var(--fs-sm);
+}
+.sidebar-section .empty,
+.sidebar-bottom,
+.activity-caption {
+  font-size: var(--fs-xs);
+}
+.files-explorer button {
+  font: var(--fs-sm) / 1.5 var(--mono);
+}
+.files-explorer .file-status {
+  font-size: 10.5px;
+}
+.file-filter {
+  font-size: var(--fs-sm);
+}
+.launchpad-item strong {
+  font-size: var(--fs-md);
+}
+.launchpad-item small,
+.launchpad-hint,
+.launchpad-load {
+  font-size: var(--fs-xs);
+}
+
+/* Editor */
+.editor-tabs .editor-tab button {
+  font: var(--fs-sm) var(--mono);
+}
+.editor-tab-empty {
+  font-size: var(--fs-xs);
+}
+.editor-bar {
+  font-size: var(--fs-xs);
+  gap: 4px;
+}
+.editor-bar .breadcrumb {
+  font: var(--fs-xs) var(--mono);
+  color: var(--muted);
+  margin-right: 6px;
+}
+.editor-bar .revision-label {
+  font-size: 10.5px;
+  border-radius: 4px;
+  margin-right: auto;
+}
+.editor-bar button {
+  font-size: var(--fs-sm);
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  padding: 4px 8px;
+}
+.editor-bar button:hover:not(:disabled) {
+  background: var(--hover);
+  border-color: transparent;
+  color: var(--text);
+}
+.editor-bar button.on {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.editor-bar button.primary {
+  background: var(--accent-strong);
+  color: #fff;
+}
+.editor-bar .editor-max-toggle {
+  margin-left: 0;
+}
+.editor-code {
+  font: 12.5px / 20px var(--mono);
+  padding: 8px 0;
+}
+.editor-code .code-line {
+  display: grid;
+  grid-template-columns: 56px auto;
+  width: max-content;
+  min-width: 100%;
+  min-height: 20px;
+}
+.editor-code.with-blame .code-line {
+  grid-template-columns: 56px 220px auto;
+}
+.editor-code .line-number {
+  width: auto;
+  min-width: 0;
+  padding-right: 16px;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #17131e;
+  color: #5f566f;
+}
+.editor-code .code-line:hover .line-number {
+  color: var(--muted);
+  background: #2a1f33;
+}
+.editor-code .line-text {
+  padding-left: 14px;
+}
+.blame-gutter {
+  position: sticky;
+  left: 56px;
+  z-index: 1;
+  background: #191520;
+  border-right: 1px solid var(--border);
+  box-shadow: inset 2px 0 0 rgb(176 131 255 / var(--heat, 0.3));
+  min-width: 0;
+}
+.blame-gutter.blame-start {
+  border-top: 1px solid #241f2d;
+}
+.code-line:first-child .blame-gutter {
+  border-top: 0;
+}
+.blame-gutter.uncommitted {
+  box-shadow: inset 2px 0 0 #f0b45a;
+}
+.blame-note,
+.blame-note:hover:not(:disabled) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 20px;
+  padding: 0 10px 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font: var(--fs-xs) / 20px var(--ui);
+  color: var(--muted);
+  text-align: left;
+}
+.blame-note:hover:not(:disabled) {
+  color: var(--text);
+  background: #ffffff08;
+}
+.blame-author {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.blame-age {
+  flex: none;
+  color: var(--faint);
+}
+.blame-gutter.uncommitted .blame-age {
+  color: #f0b45a;
+}
+.editor-empty {
+  font-size: var(--fs-md);
+}
+.editor-textarea {
+  font: 12.5px / 20px var(--mono);
+}
+
+/* Toolbar, search and graph */
+.toolbar {
+  gap: 2px;
+}
+.toolbar button {
+  font-size: var(--fs-sm);
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  padding: 5px 9px;
+}
+.toolbar button:hover:not(:disabled) {
+  background: var(--hover);
+  border-color: transparent;
+  color: var(--text);
+}
+#branch-label {
+  font: var(--fs-xs) var(--mono);
+  color: var(--accent);
+}
+.history-title h2 {
+  font: 600 var(--fs-md) var(--ui);
+}
+#search {
+  font-size: var(--fs-sm);
+  padding: 7px 10px;
+  border-radius: 6px;
+}
+.graph-extra button,
+.graph-extra .search-mode,
+.batch-controls button {
+  font-size: var(--fs-xs);
+}
+.search-error,
+.batch-controls span {
+  font-size: var(--fs-xs);
+}
+.log-head {
+  font: 600 10.5px var(--ui);
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+.commit-row {
+  height: 40px;
+  font-size: var(--fs-sm);
+  border-bottom-color: #211c29;
+}
+.commit-text .subject {
+  font-size: var(--fs-md);
+  color: var(--text);
+}
+.commit-text .hash {
+  font: var(--fs-xs) var(--mono);
+  color: var(--faint);
+}
+.commit-text .ref {
+  font: 500 10.5px var(--mono);
+  border-radius: 4px;
+}
+.avatar {
+  font-size: 10px;
+  font-weight: 600;
+}
+.commit-author .author {
+  font-size: var(--fs-sm);
+}
+.commit-author .author small,
+.commit-change {
+  font-size: var(--fs-xs);
+}
+footer,
+footer button {
+  font-size: var(--fs-xs);
+}
+
+/* Inspector */
+@media (min-width: 1251px) {
+  main {
+    grid-template-columns: 45px 250px minmax(360px, 1fr) 340px;
+  }
+}
+.details {
+  background: var(--panel);
+}
+.inspector-top .eyebrow,
+.eyebrow {
+  font: 600 10.5px var(--ui);
+  letter-spacing: 0.07em;
+  color: var(--faint);
+}
+.inspector-top button,
+.detail-actions button,
+.file-row button {
+  font-size: var(--fs-sm);
+}
+.status-block strong {
+  font-size: var(--fs-md);
+}
+.status-block small,
+.detail-heading p {
+  font-size: var(--fs-xs);
+}
+.section-title {
+  font: 600 var(--fs-sm) var(--ui);
+}
+.file-row .path {
+  font: var(--fs-sm) var(--mono);
+}
+.commit-form textarea {
+  font-size: var(--fs-md);
+}
+.commit-form .primary {
+  font-size: var(--fs-sm);
+}
+.diff {
+  font: var(--fs-sm) / 1.6 var(--mono);
+}
+#operation,
+.commit-ai,
+.autolink-list a,
+.author-group {
+  font-size: var(--fs-sm);
+}
+.detail-message {
+  font: var(--fs-sm) / 1.55 var(--mono);
+}
+.history-timeline small {
+  font-size: var(--fs-xs);
+}
+.diff-stage-bar button,
+.history-stage-head button {
+  font-size: var(--fs-sm);
+}
+.welcome-icon .icon {
+  color: var(--accent);
+}
+
+/* Light theme */
+.light {
+  --bg: #f7f5fb;
+  --panel: #ffffff;
+  --raised: #f1edf8;
+  --hover: #ebe5f6;
+  --border: #e3ddee;
+  --border-strong: #d4cbe4;
+  --text: #1f1a29;
+  --muted: #6a6079;
+  --faint: #8b829a;
+  --accent: #7a3fe0;
+  --accent-strong: #7a3fe0;
+  --accent-soft: #7a3fe01a;
+}
+.light header,
+.light main > .icon-rail {
+  background: #f1edf8;
+}
+.light .editor-code .line-number,
+.light .blame-gutter {
+  background: var(--panel);
+}
+.light .blame-gutter.blame-start {
+  border-top-color: var(--border);
+}
+
+/* The details panel already shows the selected commit or working tree; give it the whole column. */
+.details > .inspector-top {
+  display: none;
+}
+
+/* Changed files in commit details */
+.changed-file {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0 -8px;
+}
+.changed-file > button.path {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  text-align: left;
+  font: var(--fs-sm) var(--ui);
+}
+.changed-file > button.path:hover {
+  background: var(--hover);
+}
+.changed-file .file-name {
+  color: var(--text);
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+.changed-file .file-dir {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--faint);
+  font-size: var(--fs-xs);
+  direction: rtl;
+  text-align: left;
+}
+.changed-file .file-stat {
+  display: flex;
+  gap: 6px;
+  font: var(--fs-xs) var(--mono);
+  color: var(--faint);
+}
+.changed-file .added {
+  color: #8fd49e;
+}
+.changed-file .deleted {
+  color: #e99ab0;
+}
+.changed-file > button.icon-only {
+  opacity: 0;
+}
+.changed-file:hover > button.icon-only,
+.changed-file > button.icon-only:focus-visible {
+  opacity: 1;
+}

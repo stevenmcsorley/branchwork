@@ -384,3 +384,24 @@ test("Gitflow feature release and hotfix finishes, lock, raster versions and exp
   );
   await assert.rejects(w("reset", { ref: "HEAD", mode: "hard" }));
 });
+test("merge commits list and diff changes against their first parent", async (t) => {
+  const { r, g, commit } = await fixture(t);
+  await commit("base.txt", "base\n", "base");
+  const main = (await g("branch", "--show-current")).trim();
+  await g("checkout", "-q", "-b", "feature");
+  await commit("feature.txt", "feature\n", "feature");
+  await g("checkout", "-q", main);
+  await commit("main.txt", "main\n", "main work");
+  await g("merge", "--no-ff", "-q", "-m", "merge feature", "feature");
+  const merge = (await g("rev-parse", "HEAD")).trim();
+  assert.deepEqual(
+    (await r("commit-files", { commit: merge })).files.map((f) => f.path),
+    ["feature.txt"],
+  );
+  const detail = await r("commit-detail", { commit: merge });
+  assert.deepEqual(
+    detail.files.map((f) => [f.path, f.added, f.deleted]),
+    [["feature.txt", 1, 0]],
+  );
+  assert.match((await r("diff", { commit: merge })).diff, /^\+feature$/m);
+});

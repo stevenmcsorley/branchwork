@@ -302,7 +302,11 @@ test("merge recovery, unusual filenames, detached commits and local remote workf
     ),
     ["conflict.txt"],
   );
-  const odd = "space and\nnewline.txt";
+  // Windows filenames cannot contain newlines.
+  const odd =
+    process.platform === "win32"
+      ? "space & #hash ünïcode.txt"
+      : "space and\nnewline.txt";
   await fs.writeFile(path.join(repo, odd), "odd\n");
   assert.ok((await api("read", "state")).files.some((f) => f.path === odd));
   await ok("stage", { paths: [odd] });

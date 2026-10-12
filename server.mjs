@@ -560,13 +560,13 @@ export async function read(body) {
       };
       const names = (
         await git(repo, [
-          "diff-tree",
+          // diff-tree ignores --first-parent; show applies it, so merges list first-parent changes.
+          "show",
+          "--format=",
           "--root",
           "-m",
           "--first-parent",
-          "--no-commit-id",
           "--name-only",
-          "-r",
           "-z",
           hash,
           "--",
@@ -579,6 +579,8 @@ export async function read(body) {
           "show",
           "--format=",
           "--root",
+          "-m",
+          "--first-parent",
           "--numstat",
           "--no-renames",
           "-z",
@@ -927,13 +929,12 @@ export async function read(body) {
           ...new Set(
             (
               await git(repo, [
-                "diff-tree",
+                "show",
+                "--format=",
                 "--root",
                 "-m",
                 "--first-parent",
-                "--no-commit-id",
                 "--name-only",
-                "-r",
                 "-z",
                 ref(body.commit),
                 "--",
@@ -979,6 +980,9 @@ export async function read(body) {
             "show",
             "--format=",
             "--root",
+            // Merges diff against their first parent; a clean merge's combined diff is empty.
+            "-m",
+            "--first-parent",
             "--no-ext-diff",
             "--no-textconv",
             ref(body.commit),

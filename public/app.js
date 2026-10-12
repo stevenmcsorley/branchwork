@@ -874,9 +874,9 @@ async function detailCommit(c) {
   );
   ["cherry-pick", "revert", "merge", "rebase"].forEach((action) =>
     actions.append(
-      button(action, () =>
+      button(action[0].toUpperCase() + action.slice(1), () =>
         modal(
-          action + " commit",
+          action[0].toUpperCase() + action.slice(1) + " commit",
           [
             {
               note: `Apply git ${action} ${c.hash.slice(0, 8)} to the current branch.`,
